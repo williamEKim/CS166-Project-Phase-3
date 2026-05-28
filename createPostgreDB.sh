@@ -26,5 +26,5 @@ else
 fi
 
 echo ""
-echo "✅ Done! To connect to your database:"
+echo "Done! To connect to your database:"
 echo "   psql -h localhost -p $PGPORT -U $USER -d $DB_NAME"

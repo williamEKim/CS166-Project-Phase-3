@@ -33,6 +33,39 @@ python_prompt() {
     return $selected
 }
 
+stop_prompt() {
+    local options=("Yes" "No")
+    local selected=0
+
+    tput civis 
+
+    while true; do
+        echo -ne "\rWould you like to stop your Postgre Server?  \033[K"
+        for i in "${!options[@]}"; do
+            if [ "$i" -eq "$selected" ]; then
+                echo -ne "\e[1;32m[ ${options[$i]} ]\e[0m  "
+            else
+                echo -ne "  ${options[$i]}   "
+            fi
+        done
+
+        read -rsn1 key
+        if [[ "$key" == $'\x1b' ]]; then
+            read -rsn2 key
+            case "$key" in
+                "[C") selected=$(( (selected + 1) % 2 )) ;;
+                "[D") selected=$(( (selected - 1 + 2) % 2 )) ;;
+            esac
+        elif [[ "$key" == "" ]]; then
+            break
+        fi
+    done
+
+    tput cnorm
+    echo ""
+    return $selected
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$SCRIPT_DIR/cs166_server/psql.sh"

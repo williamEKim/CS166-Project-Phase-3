@@ -1,6 +1,6 @@
 #!/bin/bash
 
-arrow_prompt() {
+python_prompt() {
     local options=("Yes" "No")
     local selected=0
 
@@ -35,13 +35,24 @@ arrow_prompt() {
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+source "$SCRIPT_DIR/cs166_server/psql.sh"
+
 export DB_NAME=$USER"_eBay_DB"
 
-arrow_prompt
+python_prompt
 
 if [ $? -eq 0 ]; then
     echo "Executing the Python Script..."
     python3 "$SCRIPT_DIR/backend/main.py" "$DB_NAME" "$PGPORT" "$USER"
 else
     echo "Skipping Python Script."
+fi
+
+stop_prompt
+
+if [ $? -eq 0 ]; then
+    echo "Stopping the Postgre Server..."
+    source "$SCRIPT_DIR/cs166_server/stopPostgreDB.sh"
+else
+    echo "Skipping Server Stop."
 fi

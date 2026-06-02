@@ -1,9 +1,11 @@
+import getpass
+
 def register_user(db):
     print("\n--- Register New Buyer ---")
 
     login = input("Login: ").strip()
     phone = input("Phone number: ").strip()
-    password = input("Password: ").strip()
+    password = getpass.getpass("Password: ")
     address = input("Address: ").strip()
     favorite_category = input("Favorite category, optional: ").strip()
 
@@ -24,7 +26,7 @@ def register_seller(db):
 
     login = input("Login: ").strip()
     phone = input("Phone number: ").strip()
-    password = input("Password: ").strip()
+    password = getpass.getpass("Password: ")
     address = input("Address: ").strip()
     favorite_category = input("Favorite category, optional: ").strip()
 
@@ -44,7 +46,7 @@ def login_user(db):
     print("\n--- Login ---")
 
     login = input("Login: ").strip()
-    password = input("Password: ").strip()
+    password = getpass.getpass("Password: ")
 
     query = """
         SELECT login, role

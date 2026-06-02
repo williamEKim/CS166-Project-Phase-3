@@ -12,43 +12,22 @@ PostgreSQL setup scripts for the CS166 eBay project. Works on Mac, Linux, and Wi
 
 | File | Description |
 |------|-------------|
-| `initPostgreDB.sh` / `.bat` | Installs PostgreSQL if needed, initializes and starts the database |
-| `stopPostgreDB.sh` / `.bat` | Stops the database server |
-| `createPostgreDB.sh` / `.bat` | Creates the eBay database and loads the schema |
-| `create_tables.sql` | SQL schema for the eBay database |
+| `Ebay_DB.sh` / `.bat` | Runs the Python Script that executes all required SQL scripts and shows GUI(to be implemented) |
 
 ## Usage
 
 ### Mac / Linux
 
 ```bash
-# 1. Start the database
-source initPostgreDB.sh
-
-# 2. Create the database and load schema
-source createPostgreDB.sh
-
-# 3. Connect to the database
-psql -h localhost -p $PGPORT -U $USER -d ${USER}_eBay_DB
-
-# 4. Stop the database when done
-source stopPostgreDB.sh
+# 1. Initiate DB and runs SQL script, then run the Python Script to execute the GUI
+Ebay_DB.sh
 ```
 
 ### Windows
 
 ```bat
-:: 1. Start the database
-initPostgreDB.bat
-
-:: 2. Create the database and load schema
-createPostgreDB.bat
-
-:: 3. Connect to the database
-psql -h localhost -p %PGPORT% -U %USERNAME% -d %USERNAME%_eBay_DB
-
-:: 4. Stop the database when done
-stopPostgreDB.bat
+:: 1. Initiate DB and runs SQL script, then run the Python Script to execute the GUI
+Ebay_DB.bat
 ```
 
 ## Database Schema
@@ -123,5 +102,4 @@ stopPostgreDB.bat
 ## Notes
 
 - The database is initialized at `~/myDB/data` (Mac/Linux) or `%USERPROFILE%\myDB\data` (Windows)
-- The script auto-detects a free port starting from `5432` if the default is in use
 - The database is named `<yourUsername>_eBay_DB`

@@ -61,6 +61,7 @@ BUYER_MENU = """
 <a href="/search"><button>Search Auctions</button></a><br><br>
 <a href="/place_bid"><button>Place Bid</button></a><br><br>
 <a href="/my_bids"><button>View My Bids</button></a><br><br>
+<a href="/won_auctions"><button>View Auctions I Won</button></a><br><br>
 <a href="/make_payment"><button>Make Payment</button></a><br><br>
 <a href="/profile"><button>View Profile</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
@@ -70,6 +71,8 @@ SELLER_MENU = """
 <h2>Seller Menu — Welcome, {{ login }}!</h2>
 <a href="/browse"><button>Browse Active Auctions</button></a><br><br>
 <a href="/create_item"><button>Create Item and Auction</button></a><br><br>
+<a href="/my_items"><button>View My Items</button></a><br><br>
+<a href="/my_auctions"><button>View My Auctions</button></a><br><br>
 <a href="/end_auction"><button>End Auction</button></a><br><br>
 <a href="/profile"><button>View Profile</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
@@ -338,6 +341,94 @@ MAKE_PAYMENT_PAGE = """
 </table>
 {% else %}
     <p>No pending payments.</p>
+{% endif %}
+"""
+
+WON_AUCTIONS_PAGE = """
+<h2>Auctions I Won</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if auctions %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Auction ID</th>
+        <th>Item Name</th>
+        <th>Final Price</th>
+        <th>Status</th>
+        <th>Seller</th>
+    </tr>
+    {% for row in auctions %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>${{ "%.2f"|format(row[2]) }}</td>
+        <td>{{ row[3] }}</td>
+        <td>{{ row[4] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>You have not won any auctions yet.</p>
+{% endif %}
+"""
+
+MY_ITEMS_PAGE = """
+<h2>My Items</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if items %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Item ID</th>
+        <th>Item Name</th>
+        <th>Category</th>
+        <th>Condition</th>
+        <th>Starting Price</th>
+        <th>Description</th>
+    </tr>
+    {% for row in items %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
+        <td>${{ "%.2f"|format(row[4]) }}</td>
+        <td>{{ row[5] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>You have no items yet.</p>
+{% endif %}
+"""
+
+MY_AUCTIONS_PAGE = """
+<h2>My Auctions</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if auctions %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Auction ID</th>
+        <th>Item Name</th>
+        <th>Category</th>
+        <th>Current Highest Bid</th>
+        <th>Status</th>
+        <th>Winner</th>
+    </tr>
+    {% for row in auctions %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{% if row[3] %} ${{ "%.2f"|format(row[3]) }} {% else %} No bids yet {% endif %}</td>
+        <td>{{ row[4] }}</td>
+        <td>{{ row[5] or "N/A" }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>You have no auctions yet.</p>
 {% endif %}
 """
 
@@ -788,6 +879,63 @@ def make_payment():
     """, (buyer_login,))
 
     return render_template_string(MAKE_PAYMENT_PAGE, auctions=auctions, error=error, success=success)
+
+@app.route("/won_auctions")
+def won_auctions():
+    if "login" not in session or session["role"] != "Buyer":
+        return redirect(url_for("main_menu"))
+
+    auctions = db.fetch_all("""
+        SELECT
+            Auction.auctionID,
+            Item.itemName,
+            Auction.currentHighestBid,
+            Auction.auctionStatus,
+            Auction.sellerLogin
+        FROM Auction
+        JOIN Item ON Auction.itemID = Item.itemID
+        WHERE Auction.buyerLogin = %s
+        ORDER BY Auction.auctionID;
+    """, (session["login"],))
+
+    return render_template_string(WON_AUCTIONS_PAGE, auctions=auctions)
+
+
+@app.route("/my_items")
+def my_items():
+    if "login" not in session or session["role"] != "Seller":
+        return redirect(url_for("main_menu"))
+
+    items = db.fetch_all("""
+        SELECT itemID, itemName, category, condition, startingPrice, description
+        FROM Item
+        WHERE sellerLogin = %s
+        ORDER BY itemID;
+    """, (session["login"],))
+
+    return render_template_string(MY_ITEMS_PAGE, items=items)
+
+
+@app.route("/my_auctions")
+def my_auctions():
+    if "login" not in session or session["role"] != "Seller":
+        return redirect(url_for("main_menu"))
+
+    auctions = db.fetch_all("""
+        SELECT
+            Auction.auctionID,
+            Item.itemName,
+            Item.category,
+            Auction.currentHighestBid,
+            Auction.auctionStatus,
+            Auction.buyerLogin
+        FROM Auction
+        JOIN Item ON Auction.itemID = Item.itemID
+        WHERE Auction.sellerLogin = %s
+        ORDER BY Auction.auctionID;
+    """, (session["login"],))
+
+    return render_template_string(MY_AUCTIONS_PAGE, auctions=auctions)
 
 @app.route("/logout")
 def logout():

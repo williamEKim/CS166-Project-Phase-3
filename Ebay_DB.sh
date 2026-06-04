@@ -76,7 +76,7 @@ python_prompt
 
 if [ $? -eq 0 ]; then
     echo "Executing the Python Script..."
-    python3 "$SCRIPT_DIR/backend/main.py" "$DB_NAME" "$PGPORT" "$USER"
+    python3 "$SCRIPT_DIR/backend/GUI.py" "$DB_NAME" "$PGPORT" "$USER"
 else
     echo "Skipping Python Script."
 fi

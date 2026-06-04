@@ -32,6 +32,25 @@ LOGIN_PAGE = """
 {% endif %}
 """
 
+REGISTER_PAGE = """
+<h2>Register as {{ role }}</h2>
+<form method="POST">
+    <label>Login: <input type="text" name="login" required></label><br><br>
+    <label>Phone: <input type="text" name="phone"></label><br><br>
+    <label>Password: <input type="password" name="password" required></label><br><br>
+    <label>Address: <input type="text" name="address"></label><br><br>
+    <label>Favorite Category (optional): <input type="text" name="favorite_category"></label><br><br>
+    <button type="submit">Register</button>
+</form>
+<br><a href="/">Back</a>
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if success %}
+    <p style="color:green;">{{ success }}</p>
+{% endif %}
+"""
+
 BUYER_MENU = """
 <h2>Buyer Menu — Welcome, {{ login }}!</h2>
 <a href="/browse"><button>Browse Active Auctions</button></a><br><br>
@@ -76,6 +95,56 @@ def login():
 
     return render_template_string(LOGIN_PAGE, error=error)
 
+@app.route("/register_buyer", methods=["GET", "POST"])
+def register_buyer():
+    error = None
+    success = None
+
+    if request.method == "POST":
+        login        = request.form["login"].strip()
+        phone        = request.form["phone"].strip()
+        password     = request.form["password"].strip()
+        address      = request.form["address"].strip()
+        fav_category = request.form["favorite_category"].strip()
+
+        if not login or not password:
+            error = "Login and password are required."
+        else:
+            query = """
+                INSERT INTO "User"
+                (login, phoneNum, role, password, address, favoriteCategory)
+                VALUES (%s, %s, 'Buyer', %s, %s, %s);
+            """
+            db.execute_update(query, (login, phone, password, address, fav_category))
+            success = f"Buyer '{login}' registered! You can now log in."
+
+    return render_template_string(REGISTER_PAGE, role="Buyer", error=error, success=success)
+
+
+@app.route("/register_seller", methods=["GET", "POST"])
+def register_seller_route():
+    error = None
+    success = None
+
+    if request.method == "POST":
+        login        = request.form["login"].strip()
+        phone        = request.form["phone"].strip()
+        password     = request.form["password"].strip()
+        address      = request.form["address"].strip()
+        fav_category = request.form["favorite_category"].strip()
+
+        if not login or not password:
+            error = "Login and password are required."
+        else:
+            query = """
+                INSERT INTO "User"
+                (login, phoneNum, role, password, address, favoriteCategory)
+                VALUES (%s, %s, 'Seller', %s, %s, %s);
+            """
+            db.execute_update(query, (login, phone, password, address, fav_category))
+            success = f"Seller '{login}' registered! You can now log in."
+
+    return render_template_string(REGISTER_PAGE, role="Seller", error=error, success=success)
 
 @app.route("/dashboard")
 def dashboard():

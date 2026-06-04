@@ -72,6 +72,13 @@ source "$SCRIPT_DIR/cs166_server/psql.sh"
 
 export DB_NAME=$USER"_eBay_DB"
 
+echo "Initializing and activating the python virtual environment..."
+python3 -m venv venv --system-site-packages
+source venv/bin/activate
+
+echo "Installing Required Dependencies..."
+pip3 install -r requirements.txt
+
 python_prompt
 
 if [ $? -eq 0 ]; then

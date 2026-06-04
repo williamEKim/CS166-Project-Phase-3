@@ -120,6 +120,7 @@ BROWSE_PAGE = """
         <th>Auction ID</th>
         <th>Item Name</th>
         <th>Category</th>
+        <th>Description</th>
         <th>Condition</th>
         <th>Starting Price</th>
         <th>Current Highest Bid</th>
@@ -131,9 +132,10 @@ BROWSE_PAGE = """
         <td>{{ row[1] }}</td>
         <td>{{ row[2] }}</td>
         <td>{{ row[3] }}</td>
-        <td>${{ "%.2f"|format(row[4]) }}</td>
-        <td>{% if row[5] %} ${{ "%.2f"|format(row[5]) }} {% else %} No bids yet {% endif %}</td>
-        <td>{{ row[6] }}</td>
+        <td>{{ row[4] }}</td>
+        <td>${{ "%.2f"|format(row[5]) }}</td>
+        <td>{% if row[5] %} ${{ "%.2f"|format(row[6]) }} {% else %} No bids yet {% endif %}</td>
+        <td>{{ row[7] }}</td>
     </tr>
     {% endfor %}
 </table>
@@ -618,6 +620,7 @@ def browse():
             Auction.auctionID,
             Item.itemName,
             Item.category,
+            Item.description,
             Item.condition,
             Item.startingPrice,
             Auction.currentHighestBid,

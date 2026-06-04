@@ -74,6 +74,7 @@ SELLER_MENU = """
 <a href="/my_items"><button>View My Items</button></a><br><br>
 <a href="/my_auctions"><button>View My Auctions</button></a><br><br>
 <a href="/end_auction"><button>End Auction</button></a><br><br>
+<a href="/create_shipment"><button>Create Shipment</button></a><br><br>
 <a href="/profile"><button>View Profile</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
 """
@@ -429,6 +430,48 @@ MY_AUCTIONS_PAGE = """
 </table>
 {% else %}
     <p>You have no auctions yet.</p>
+{% endif %}
+"""
+
+CREATE_SHIPMENT_PAGE = """
+<h2>Create Shipment</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if success %}
+    <p style="color:green;">{{ success }}</p>
+{% endif %}
+{% if auctions %}
+<p>Select an auction to create a shipment for:</p>
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Auction ID</th>
+        <th>Item Name</th>
+        <th>Winner</th>
+        <th>Final Price</th>
+        <th>Action</th>
+    </tr>
+    {% for row in auctions %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>${{ "%.2f"|format(row[3]) }}</td>
+        <td>
+            <form method="POST">
+                <input type="hidden" name="auction_id" value="{{ row[0] }}">
+                <label>Address: <input type="text" name="address" required></label>
+                <label>Tracking # (optional): <input type="number" name="tracking_number"></label>
+                <button type="submit">Create Shipment</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No eligible auctions for shipment (must be closed and paid).</p>
 {% endif %}
 """
 
@@ -936,6 +979,81 @@ def my_auctions():
     """, (session["login"],))
 
     return render_template_string(MY_AUCTIONS_PAGE, auctions=auctions)
+
+@app.route("/create_shipment", methods=["GET", "POST"])
+def create_shipment():
+    if "login" not in session or session["role"] != "Seller":
+        return redirect(url_for("main_menu"))
+
+    error = None
+    success = None
+    seller_login = session["login"]
+
+    if request.method == "POST":
+        auction_id      = request.form["auction_id"].strip()
+        address         = request.form["address"].strip()
+        tracking_input  = request.form["tracking_number"].strip()
+
+        tracking_number = None
+        if tracking_input:
+            try:
+                tracking_number = int(tracking_input)
+            except ValueError:
+                error = "Tracking number must be numeric."
+
+        if not error:
+            # verify auction is closed, paid, and belongs to seller
+            result = db.fetch_one("""
+                SELECT Auction.auctionID
+                FROM Auction
+                JOIN Payment ON Auction.auctionID = Payment.auctionID
+                WHERE Auction.auctionID = %s
+                  AND Auction.sellerLogin = %s
+                  AND Auction.auctionStatus = 'closed'
+                  AND Payment.paymentStatus = 'completed';
+            """, (auction_id, seller_login))
+
+            if result is None:
+                error = "Auction not found, not yours, not closed, or payment not completed."
+            else:
+                # check if shipment already exists
+                existing = db.fetch_one("""
+                    SELECT ShipmentID FROM Shipment WHERE auctionID = %s;
+                """, (auction_id,))
+
+                if existing:
+                    error = "Shipment already created for this auction."
+                else:
+                    shipment_id = ("SHIP" + uuid.uuid4().hex)[:30]
+                    ok = db.execute_update("""
+                        INSERT INTO Shipment
+                        (ShipmentID, address, shipmentStatus, trackingNumber, auctionID)
+                        VALUES (%s, %s, 'pending', %s, %s);
+                    """, (shipment_id, address, tracking_number, auction_id))
+
+                    if ok:
+                        success = f"Shipment created! Shipment ID: {shipment_id}"
+                    else:
+                        error = "Something went wrong."
+
+    # show closed + paid auctions without a shipment yet
+    auctions = db.fetch_all("""
+        SELECT
+            Auction.auctionID,
+            Item.itemName,
+            Auction.buyerLogin,
+            Auction.currentHighestBid
+        FROM Auction
+        JOIN Item ON Auction.itemID = Item.itemID
+        JOIN Payment ON Auction.auctionID = Payment.auctionID
+        LEFT JOIN Shipment ON Auction.auctionID = Shipment.auctionID
+        WHERE Auction.sellerLogin = %s
+          AND Auction.auctionStatus = 'closed'
+          AND Payment.paymentStatus = 'completed'
+          AND Shipment.ShipmentID IS NULL;
+    """, (seller_login,))
+
+    return render_template_string(CREATE_SHIPMENT_PAGE, auctions=auctions, error=error, success=success)
 
 @app.route("/logout")
 def logout():

@@ -69,6 +69,7 @@ SELLER_MENU = """
 <h2>Seller Menu — Welcome, {{ login }}!</h2>
 <a href="/browse"><button>Browse Active Auctions</button></a><br><br>
 <a href="/create_item"><button>Create Item and Auction</button></a><br><br>
+<a href="/end_auction"><button>End Auction</button></a><br><br>
 <a href="/profile"><button>View Profile</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
 """
@@ -222,6 +223,83 @@ VIEW_BIDS_PAGE = """
 {% endif %}
 """
 
+SEARCH_PAGE = """
+<h2>Search Auctions</h2>
+<form method="POST">
+    <label>Keyword: <input type="text" name="keyword" required></label>
+    <button type="submit">Search</button>
+</form>
+<br><a href="/dashboard">Back</a>
+<br><br>
+{% if results is not none %}
+    {% if results %}
+    <table border="1" cellpadding="8" cellspacing="0">
+        <tr>
+            <th>Auction ID</th>
+            <th>Item Name</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Current Highest Bid</th>
+            <th>Status</th>
+            <th>Seller</th>
+        </tr>
+        {% for row in results %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>${{ "%.2f"|format(row[4]) }}</td>
+            <td>{{ row[5] }}</td>
+            <td>{{ row[6] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No auctions matched your search.</p>
+    {% endif %}
+{% endif %}
+"""
+
+END_AUCTION_PAGE = """
+<h2>End Auction</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if success %}
+    <p style="color:green;">{{ success }}</p>
+{% endif %}
+{% if auctions %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Auction ID</th>
+        <th>Item Name</th>
+        <th>Category</th>
+        <th>Current Highest Bid</th>
+        <th>Action</th>
+    </tr>
+    {% for row in auctions %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{% if row[3] %} ${{ "%.2f"|format(row[3]) }} {% else %} No bids yet {% endif %}</td>
+        <td>
+            <form method="POST">
+                <input type="hidden" name="auction_id" value="{{ row[0] }}">
+                <button type="submit">End</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>You have no active auctions.</p>
+{% endif %}
+"""
+
 # Routes 
 
 @app.route("/")
@@ -236,7 +314,6 @@ def login():
         login_input = request.form["login"].strip()
         password    = request.form["password"].strip()
 
-        # replaces login_user(db) — same query, no input()
         query = """
             SELECT login, role
             FROM "User"
@@ -445,7 +522,6 @@ def place_bid():
             error = "Invalid bid amount."
             return render_template_string(PLACE_BID_PAGE, error=error, success=success)
 
-        # validate auction exists and is active
         auction = db.fetch_one("""
             SELECT sellerLogin, currentHighestBid, auctionStatus
             FROM Auction WHERE auctionID = %s;
@@ -503,6 +579,112 @@ def my_bids():
     """, (session["login"],))
 
     return render_template_string(VIEW_BIDS_PAGE, bids=bids)
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if "login" not in session:
+        return redirect(url_for("main_menu"))
+
+    results = None
+
+    if request.method == "POST":
+        keyword = request.form["keyword"].strip()
+        pattern = f"%{keyword}%"
+
+        results = db.fetch_all("""
+            SELECT
+                Auction.auctionID,
+                Item.itemName,
+                Item.category,
+                Item.description,
+                Auction.currentHighestBid,
+                Auction.auctionStatus,
+                Auction.sellerLogin
+            FROM Auction
+            JOIN Item ON Auction.itemID = Item.itemID
+            WHERE Auction.auctionStatus = 'active'
+              AND (
+                    LOWER(Item.itemName)    LIKE LOWER(%s)
+                OR  LOWER(Item.category)   LIKE LOWER(%s)
+                OR  LOWER(Item.description) LIKE LOWER(%s)
+              )
+            ORDER BY Auction.currentHighestBid;
+        """, (pattern, pattern, pattern))
+
+    return render_template_string(SEARCH_PAGE, results=results)
+
+@app.route("/end_auction", methods=["GET", "POST"])
+def end_auction():
+    if "login" not in session or session["role"] != "Seller":
+        return redirect(url_for("main_menu"))
+
+    error = None
+    success = None
+
+    if request.method == "POST":
+        auction_id   = request.form["auction_id"].strip()
+        seller_login = session["login"]
+
+        auction = db.fetch_one("""
+            SELECT auctionID FROM Auction
+            WHERE auctionID = %s
+              AND sellerLogin = %s
+              AND auctionStatus = 'active';
+        """, (auction_id, seller_login))
+
+        if auction is None:
+            error = "Auction not found, not yours, or already closed."
+        else:
+            winner = db.fetch_one("""
+                SELECT buyerLogin FROM Bid
+                WHERE auctionID = %s
+                ORDER BY bidAmount DESC, bidTimestamp ASC
+                LIMIT 1;
+            """, (auction_id,))
+
+            winner_login = winner[0].strip() if winner else None
+
+            statements = [(
+                """UPDATE Auction
+                   SET auctionStatus = 'closed', buyerLogin = %s
+                   WHERE auctionID = %s;""",
+                (winner_login, auction_id)
+            )]
+
+            if winner_login:
+                statements.append((
+                    """UPDATE Item SET condition = 'sold'
+                       WHERE itemID = (
+                           SELECT itemID FROM Auction WHERE auctionID = %s
+                       );""",
+                    (auction_id,)
+                ))
+
+            ok = db.execute_transaction(statements)
+
+            if ok:
+                if winner_login:
+                    success = f"Auction closed. Winner: {winner_login}"
+                else:
+                    success = "Auction closed. No bids were placed."
+            else:
+                error = "Something went wrong."
+
+    # always reload active auctions after POST too
+    auctions = db.fetch_all("""
+        SELECT
+            Auction.auctionID,
+            Item.itemName,
+            Item.category,
+            Auction.currentHighestBid
+        FROM Auction
+        JOIN Item ON Auction.itemID = Item.itemID
+        WHERE Auction.sellerLogin = %s
+          AND Auction.auctionStatus = 'active'
+        ORDER BY Auction.auctionID;
+    """, (session["login"],))
+
+    return render_template_string(END_AUCTION_PAGE, auctions=auctions, error=error, success=success)
 
 @app.route("/logout")
 def logout():

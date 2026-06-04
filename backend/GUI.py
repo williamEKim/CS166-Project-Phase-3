@@ -61,6 +61,7 @@ BUYER_MENU = """
 <a href="/search"><button>Search Auctions</button></a><br><br>
 <a href="/place_bid"><button>Place Bid</button></a><br><br>
 <a href="/my_bids"><button>View My Bids</button></a><br><br>
+<a href="/make_payment"><button>Make Payment</button></a><br><br>
 <a href="/profile"><button>View Profile</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
 """
@@ -297,6 +298,46 @@ END_AUCTION_PAGE = """
 </table>
 {% else %}
     <p>You have no active auctions.</p>
+{% endif %}
+"""
+
+MAKE_PAYMENT_PAGE = """
+<h2>Make Payment</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if success %}
+    <p style="color:green;">{{ success }}</p>
+{% endif %}
+{% if auctions %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Auction ID</th>
+        <th>Item Name</th>
+        <th>Amount Due</th>
+        <th>Seller</th>
+        <th>Action</th>
+    </tr>
+    {% for row in auctions %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>${{ "%.2f"|format(row[2]) }}</td>
+        <td>{{ row[3] }}</td>
+        <td>
+            <form method="POST">
+                <input type="hidden" name="auction_id" value="{{ row[0] }}">
+                <input type="hidden" name="amount" value="{{ row[2] }}">
+                <button type="submit">Pay</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No pending payments.</p>
 {% endif %}
 """
 
@@ -685,6 +726,68 @@ def end_auction():
     """, (session["login"],))
 
     return render_template_string(END_AUCTION_PAGE, auctions=auctions, error=error, success=success)
+
+@app.route("/make_payment", methods=["GET", "POST"])
+def make_payment():
+    if "login" not in session or session["role"] != "Buyer":
+        return redirect(url_for("main_menu"))
+
+    error = None
+    success = None
+    buyer_login = session["login"]
+
+    if request.method == "POST":
+        auction_id = request.form["auction_id"].strip()
+        amount     = float(request.form["amount"])
+
+        # verify buyer is the winner and auction is closed
+        auction = db.fetch_one("""
+            SELECT currentHighestBid, buyerLogin, auctionStatus
+            FROM Auction WHERE auctionID = %s;
+        """, (auction_id,))
+
+        if auction is None:
+            error = "Auction not found."
+        elif auction[1] is None or auction[1].strip() != buyer_login:
+            error = "You are not the winner of this auction."
+        elif auction[2] != "closed":
+            error = "Auction must be closed before payment."
+        else:
+            # check if already paid
+            existing = db.fetch_one("""
+                SELECT paymentID FROM Payment WHERE auctionID = %s;
+            """, (auction_id,))
+
+            if existing:
+                error = "Payment already made for this auction."
+            else:
+                payment_id = ("PAY" + uuid.uuid4().hex)[:30]
+                ok = db.execute_update("""
+                    INSERT INTO Payment (paymentID, amount, paymentStatus, buyerLogin, auctionID)
+                    VALUES (%s, %s, 'completed', %s, %s);
+                """, (payment_id, amount, buyer_login, auction_id))
+
+                if ok:
+                    success = f"Payment of ${amount:.2f} completed! Payment ID: {payment_id}"
+                else:
+                    error = "Something went wrong."
+
+    # show auctions won but not yet paid
+    auctions = db.fetch_all("""
+        SELECT
+            Auction.auctionID,
+            Item.itemName,
+            Auction.currentHighestBid,
+            Auction.sellerLogin
+        FROM Auction
+        JOIN Item ON Auction.itemID = Item.itemID
+        LEFT JOIN Payment ON Auction.auctionID = Payment.auctionID
+        WHERE Auction.buyerLogin = %s
+          AND Auction.auctionStatus = 'closed'
+          AND Payment.paymentID IS NULL;
+    """, (buyer_login,))
+
+    return render_template_string(MAKE_PAYMENT_PAGE, auctions=auctions, error=error, success=success)
 
 @app.route("/logout")
 def logout():

@@ -42,6 +42,10 @@ REGISTER_PAGE = """
     <label>Favorite Category (optional): <input type="text" name="favorite_category"></label><br><br>
     <button type="submit">Register</button>
 </form>
+
+<a href="/login"><button type="button">Login</button></a>
+<br>
+
 <br><a href="/">Back</a>
 {% if error %}
     <p style="color:red;">{{ error }}</p>
@@ -55,6 +59,8 @@ BUYER_MENU = """
 <h2>Buyer Menu — Welcome, {{ login }}!</h2>
 <a href="/browse"><button>Browse Active Auctions</button></a><br><br>
 <a href="/search"><button>Search Auctions</button></a><br><br>
+<a href="/place_bid"><button>Place Bid</button></a><br><br>
+<a href="/my_bids"><button>View My Bids</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
 """
 
@@ -126,6 +132,60 @@ CREATE_ITEM_PAGE = """
 {% endif %}
 {% if success %}
     <p style="color:green;">{{ success }}</p>
+{% endif %}
+"""
+
+PLACE_BID_PAGE = """
+<h2>Place Bid</h2>
+<form method="POST">
+    <label>Auction ID: <input type="text" name="auction_id" required></label><br><br>
+    <label>Bid Amount:</label><br>
+    <div style="display:inline-flex; align-items:center; border:1px solid #ccc; padding:2px 6px;">
+        <span>$</span>
+        <input type="number" step="0.01" name="bid_amount" required
+               style="border:none; outline:none; margin-left:4px;">
+    </div>
+    <br><br>
+    <button type="submit">Place Bid</button>
+</form>
+<br><a href="/dashboard">Back</a>
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if success %}
+    <p style="color:green;">{{ success }}</p>
+{% endif %}
+"""
+
+VIEW_BIDS_PAGE = """
+<h2>My Bids</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if bids %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Bid ID</th>
+        <th>Auction ID</th>
+        <th>Item Name</th>
+        <th>My Bid</th>
+        <th>Current Highest Bid</th>
+        <th>Auction Status</th>
+        <th>Timestamp</th>
+    </tr>
+    {% for row in bids %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>${{ "%.2f"|format(row[3]) }}</td>
+        <td>${{ "%.2f"|format(row[4]) }}</td>
+        <td>{{ row[5] }}</td>
+        <td>{{ row[6] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>You have not placed any bids yet.</p>
 {% endif %}
 """
 
@@ -290,6 +350,83 @@ def create_item():
             error = "Something went wrong. Check the terminal for details."
 
     return render_template_string(CREATE_ITEM_PAGE, error=error, success=success)
+
+@app.route("/place_bid", methods=["GET", "POST"])
+def place_bid():
+    if "login" not in session or session["role"] != "Buyer":
+        return redirect(url_for("main_menu"))
+
+    error = None
+    success = None
+
+    if request.method == "POST":
+        auction_id   = request.form["auction_id"].strip()
+        buyer_login  = session["login"]
+
+        try:
+            bid_amount = float(request.form["bid_amount"])
+        except ValueError:
+            error = "Invalid bid amount."
+            return render_template_string(PLACE_BID_PAGE, error=error, success=success)
+
+        # validate auction exists and is active
+        auction = db.fetch_one("""
+            SELECT sellerLogin, currentHighestBid, auctionStatus
+            FROM Auction WHERE auctionID = %s;
+        """, (auction_id,))
+
+        if auction is None:
+            error = "Auction not found."
+        elif auction[2] != "active":
+            error = "This auction is not active."
+        elif auction[0].strip() == buyer_login:
+            error = "You cannot bid on your own auction."
+        elif auction[1] is not None and bid_amount <= float(auction[1]):
+            error = f"Bid must be greater than current highest bid (${auction[1]:.2f})."
+        else:
+            bid_id = ("BID" + uuid.uuid4().hex)[:30]
+
+            ok = db.execute_transaction([
+                (
+                    """INSERT INTO Bid (bidId, bidAmount, bidTimestamp, buyerLogin, auctionID)
+                       VALUES (%s, %s, %s, %s, %s);""",
+                    (bid_id, bid_amount, datetime.now(), buyer_login, auction_id)
+                ),
+                (
+                    """UPDATE Auction SET currentHighestBid = %s WHERE auctionID = %s;""",
+                    (bid_amount, auction_id)
+                )
+            ])
+
+            if ok:
+                success = f"Bid placed successfully! Bid ID: {bid_id}"
+            else:
+                error = "Something went wrong. Check terminal for details."
+
+    return render_template_string(PLACE_BID_PAGE, error=error, success=success)
+
+@app.route("/my_bids")
+def my_bids():
+    if "login" not in session or session["role"] != "Buyer":
+        return redirect(url_for("main_menu"))
+
+    bids = db.fetch_all("""
+        SELECT
+            Bid.bidId,
+            Bid.auctionID,
+            Item.itemName,
+            Bid.bidAmount,
+            Auction.currentHighestBid,
+            Auction.auctionStatus,
+            Bid.bidTimestamp
+        FROM Bid
+        JOIN Auction ON Bid.auctionID = Auction.auctionID
+        JOIN Item ON Auction.itemID = Item.itemID
+        WHERE Bid.buyerLogin = %s
+        ORDER BY Bid.bidTimestamp DESC;
+    """, (session["login"],))
+
+    return render_template_string(VIEW_BIDS_PAGE, bids=bids)
 
 @app.route("/logout")
 def logout():

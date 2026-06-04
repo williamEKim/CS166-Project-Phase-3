@@ -61,7 +61,72 @@ BUYER_MENU = """
 SELLER_MENU = """
 <h2>Seller Menu — Welcome, {{ login }}!</h2>
 <a href="/browse"><button>Browse Active Auctions</button></a><br><br>
+<a href="/create_item"><button>Create Item and Auction</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
+"""
+
+BROWSE_PAGE = """
+<h2>Active Auctions</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if auctions %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <th>Auction ID</th>
+        <th>Item Name</th>
+        <th>Category</th>
+        <th>Condition</th>
+        <th>Starting Price</th>
+        <th>Current Highest Bid</th>
+        <th>Seller</th>
+    </tr>
+    {% for row in auctions %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
+        <td>${{ "%.2f"|format(row[4]) }}</td>
+        <td>{% if row[5] %} ${{ "%.2f"|format(row[5]) }} {% else %} No bids yet {% endif %}</td>
+        <td>{{ row[6] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No active auctions found.</p>
+{% endif %}
+"""
+
+CREATE_ITEM_PAGE = """
+<h2>Create Item and Auction</h2>
+<form method="POST">
+    <label>Item Name: <input type="text" name="item_name" required></label><br><br>
+    <label>Category: <input type="text" name="category"></label><br><br>
+    <label>Image URL (optional): <input type="text" name="image_url"></label><br><br>
+    <label>Condition:
+        <select name="condition">
+            <option value="available">Available</option>
+            <option value="sold">Sold</option>
+            <option value="removed">Removed</option>
+        </select>
+    </label><br><br>
+    <label>Starting Price:</label><br>
+    <div style="display:inline-flex; align-items:center; border:1px solid #ccc; padding:2px 6px;">
+        <span>$</span>
+        <input type="number" step="0.01" name="starting_price" required
+            style="border:none; outline:none; margin-left:4px;">
+    </div>
+    <br><br>
+    <label>Description: <textarea name="description" required></textarea></label><br><br>
+    <button type="submit">Create</button>
+</form>
+<br><a href="/dashboard">Back</a>
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if success %}
+    <p style="color:green;">{{ success }}</p>
+{% endif %}
 """
 
 # Routes 
@@ -155,19 +220,81 @@ def dashboard():
     else:
         return render_template_string(SELLER_MENU, login=session["login"])
 
+@app.route("/browse")
+def browse():
+    if "login" not in session:
+        return redirect(url_for("main_menu"))
+
+    query = """
+        SELECT
+            Auction.auctionID,
+            Item.itemName,
+            Item.category,
+            Item.condition,
+            Item.startingPrice,
+            Auction.currentHighestBid,
+            Auction.sellerLogin
+        FROM Auction
+        JOIN Item ON Auction.itemID = Item.itemID
+        WHERE Auction.auctionStatus = 'active'
+        ORDER BY Auction.auctionID;
+    """
+
+    auctions = db.fetch_all(query)
+    return render_template_string(BROWSE_PAGE, auctions=auctions)
+
+@app.route("/create_item", methods=["GET", "POST"])
+def create_item():
+    if "login" not in session or session["role"] != "Seller":
+        return redirect(url_for("main_menu"))
+
+    error = None
+    success = None
+
+    if request.method == "POST":
+        item_name     = request.form["item_name"].strip()
+        category      = request.form["category"].strip()
+        image_url     = request.form["image_url"].strip()
+        condition     = request.form["condition"]
+        description   = request.form["description"].strip()
+        seller_login  = session["login"]
+
+        try:
+            starting_price = float(request.form["starting_price"])
+        except ValueError:
+            error = "Invalid starting price."
+            return render_template_string(CREATE_ITEM_PAGE, error=error, success=success)
+
+        item_id    = ("ITEM" + uuid.uuid4().hex)[:20]
+        auction_id = ("AUC"  + uuid.uuid4().hex)[:30]
+
+        insert_item = """
+            INSERT INTO Item
+            (itemID, itemName, category, imageURL, condition, startingPrice, description, sellerLogin)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+        """
+        insert_auction = """
+            INSERT INTO Auction
+            (auctionID, auctionStatus, currentHighestBid, sellerLogin, itemID, buyerLogin)
+            VALUES (%s, 'active', %s, %s, %s, NULL);
+        """
+
+        ok = db.execute_transaction([
+            (insert_item,    (item_id, item_name, category, image_url, condition, starting_price, description, seller_login)),
+            (insert_auction, (auction_id, starting_price, seller_login, item_id))
+        ])
+
+        if ok:
+            success = f"Created! Auction ID: {auction_id}"
+        else:
+            error = "Something went wrong. Check the terminal for details."
+
+    return render_template_string(CREATE_ITEM_PAGE, error=error, success=success)
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("main_menu"))
-
-
-@app.route("/browse")
-def browse():
-    if "login" not in session:
-        return redirect(url_for("main_menu"))
-    # TODO: add table
-    return "Browse page coming soon! <a href='/dashboard'>Back</a>"
 
 
 # Main Logic

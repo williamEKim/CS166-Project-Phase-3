@@ -61,6 +61,7 @@ BUYER_MENU = """
 <a href="/search"><button>Search Auctions</button></a><br><br>
 <a href="/place_bid"><button>Place Bid</button></a><br><br>
 <a href="/my_bids"><button>View My Bids</button></a><br><br>
+<a href="/profile"><button>View Profile</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
 """
 
@@ -68,7 +69,39 @@ SELLER_MENU = """
 <h2>Seller Menu — Welcome, {{ login }}!</h2>
 <a href="/browse"><button>Browse Active Auctions</button></a><br><br>
 <a href="/create_item"><button>Create Item and Auction</button></a><br><br>
+<a href="/profile"><button>View Profile</button></a><br><br>
 <a href="/logout"><button>Logout</button></a>
+"""
+
+PROFILE_PAGE = """
+<h2>My Profile</h2>
+<a href="/dashboard"><button>Back to Menu</button></a>
+<br><br>
+{% if profile %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr><th>Login</th><td>{{ profile[0] }}</td></tr>
+    <tr><th>Phone</th><td>{{ profile[1] }}</td></tr>
+    <tr><th>Role</th><td>{{ profile[2] }}</td></tr>
+    <tr><th>Address</th><td>{{ profile[3] }}</td></tr>
+    <tr><th>Favorite Category</th><td>{{ profile[4] }}</td></tr>
+</table>
+<br>
+<a href="/edit_profile"><button>Edit Profile</button></a>
+{% endif %}
+"""
+
+EDIT_PROFILE_PAGE = """
+<h2>Edit Profile</h2>
+<form method="POST">
+    <label>Phone: <input type="text" name="phone" value="{{ profile[1] }}"></label><br><br>
+    <label>Address: <input type="text" name="address" value="{{ profile[3] }}"></label><br><br>
+    <label>Favorite Category: <input type="text" name="favorite_category" value="{{ profile[4] or '' }}"></label><br><br>
+    <button type="submit">Save</button>
+</form>
+<br><a href="/profile">Back</a>
+{% if success %}
+    <p style="color:green;">{{ success }}</p>
+{% endif %}
 """
 
 BROWSE_PAGE = """
@@ -279,6 +312,49 @@ def dashboard():
         return render_template_string(BUYER_MENU, login=session["login"])
     else:
         return render_template_string(SELLER_MENU, login=session["login"])
+
+@app.route("/profile")
+def profile():
+    if "login" not in session:
+        return redirect(url_for("main_menu"))
+
+    data = db.fetch_one("""
+        SELECT login, phoneNum, role, address, favoriteCategory
+        FROM "User" WHERE login = %s;
+    """, (session["login"],))
+
+    return render_template_string(PROFILE_PAGE, profile=data)
+
+
+@app.route("/edit_profile", methods=["GET", "POST"])
+def edit_profile():
+    if "login" not in session:
+        return redirect(url_for("main_menu"))
+
+    success = None
+    data = db.fetch_one("""
+        SELECT login, phoneNum, role, address, favoriteCategory
+        FROM "User" WHERE login = %s;
+    """, (session["login"],))
+
+    if request.method == "POST":
+        phone        = request.form["phone"].strip()
+        address      = request.form["address"].strip()
+        fav_category = request.form["favorite_category"].strip()
+
+        db.execute_update("""
+            UPDATE "User"
+            SET phoneNum = %s, address = %s, favoriteCategory = %s
+            WHERE login = %s;
+        """, (phone, address, fav_category, session["login"]))
+
+        success = "Profile updated!"
+        data = db.fetch_one("""
+            SELECT login, phoneNum, role, address, favoriteCategory
+            FROM "User" WHERE login = %s;
+        """, (session["login"],))
+
+    return render_template_string(EDIT_PROFILE_PAGE, profile=data, success=success)
 
 @app.route("/browse")
 def browse():

@@ -374,7 +374,12 @@ BROWSE_PAGE = """
                     Copy
                 </button>
             </td>
-            <td style="font-weight:500; color:#111;">{{ row[1] }}</td>
+            <td>
+                <span onclick="showDetail('{{ row[1] }}', '{{ row[3]|replace("'", "\\'") }}', '{{ row[2] }}', '{{ row[6] or '' }}')"
+                      style="font-weight:500; color:#111; cursor:pointer; border-bottom:1px dashed #ccc;">
+                    {{ row[1] }}
+                </span>
+            </td>
             <td style="color:#555;">{{ row[2] }}</td>
             <td><span class="tag tag-{{ row[4] }}">{{ row[4] }}</span></td>
             <td style="color:#555;">${{ "%.2f"|format(row[5]) }}</td>
@@ -390,7 +395,62 @@ BROWSE_PAGE = """
         <div style="text-align:center; padding:48px; color:#aaa;">No active auctions found.</div>
     {% endif %}
 
+    <!-- Modal -->
+    <div id="modal-overlay"
+         onclick="closeModal()"
+         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3);
+                z-index:100; backdrop-filter:blur(2px);">
+    </div>
+    <div id="modal"
+         style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+                background:white; border-radius:16px; padding:32px; width:480px; max-width:90vw;
+                box-shadow:0 20px 60px rgba(0,0,0,0.15); z-index:101;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+            <h2 id="modal-title" style="font-size:1.2rem; font-weight:600; color:#111; margin:0;"></h2>
+            <button onclick="closeModal()"
+                    style="background:none; border:none; font-size:1.2rem; color:#aaa;
+                           cursor:pointer; padding:0; line-height:1;">✕</button>
+        </div>
+        <div id="modal-category"
+             style="font-size:0.8rem; color:#888; margin-bottom:16px;"></div>
+        <p id="modal-description"
+           style="font-size:0.9rem; color:#444; line-height:1.6; margin:0 0 20px;"></p>
+        <div id="modal-url-wrapper" style="display:none;">
+            <a id="modal-url" href="#" target="_blank"
+               style="font-size:0.85rem; color:#111; font-weight:500; text-decoration:underline;">
+                View Image →
+            </a>
+        </div>
+    </div>
+
     <script>
+    function showDetail(name, description, category, imageUrl) {
+        document.getElementById('modal-title').innerText = name;
+        document.getElementById('modal-category').innerText = '📂 ' + category;
+        document.getElementById('modal-description').innerText = description || 'No description available.';
+
+        const urlWrapper = document.getElementById('modal-url-wrapper');
+        const urlLink    = document.getElementById('modal-url');
+        if (imageUrl && imageUrl.trim() !== '') {
+            urlLink.href = imageUrl;
+            urlWrapper.style.display = 'block';
+        } else {
+            urlWrapper.style.display = 'none';
+        }
+
+        document.getElementById('modal-overlay').style.display = 'block';
+        document.getElementById('modal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
     function copyText(text, btn) {
         navigator.clipboard.writeText(text).then(function() {
             btn.innerText = 'Copied!';

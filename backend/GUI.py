@@ -375,7 +375,7 @@ BROWSE_PAGE = """
                 </button>
             </td>
             <td>
-                <span onclick="showDetail('{{ row[1] }}', '{{ row[3]|replace("'", "\\'") }}', '{{ row[2] }}', '{{ row[6] or '' }}')"
+                <span onclick="showDetail('{{ row[1] }}', '{{ row[3]|replace("'", "\\'") }}', '{{ row[2] }}', '{{ row[8] or "" }}')"
                       style="font-weight:500; color:#111; cursor:pointer; border-bottom:1px dashed #ccc;">
                     {{ row[1] }}
                 </span>
@@ -885,7 +885,8 @@ def browse():
         return redirect(url_for("main_menu"))
     auctions = db.fetch_all("""
         SELECT Auction.auctionID, Item.itemName, Item.category, Item.description,
-               Item.condition, Item.startingPrice, Auction.currentHighestBid, Auction.sellerLogin
+            Item.condition, Item.startingPrice, Auction.currentHighestBid,
+            Auction.sellerLogin, Item.imageURL
         FROM Auction JOIN Item ON Auction.itemID = Item.itemID
         WHERE Auction.auctionStatus = 'active' ORDER BY Auction.auctionID;
     """)

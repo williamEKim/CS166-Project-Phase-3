@@ -364,7 +364,16 @@ BROWSE_PAGE = """
         </tr>
         {% for row in auctions %}
         <tr>
-            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[0]|truncate(16, true, '…') }}</td>
+            <td>
+                <span class="mono" style="font-size:0.78rem; color:#888;">{{ row[0]|truncate(16, true, '…') }}</span>
+                <button onclick="copyText('{{ row[0] }}', this)"
+                        style="margin-left:6px; background:none; border:1px solid #e0e0e0;
+                               border-radius:4px; padding:2px 6px; font-size:0.7rem;
+                               color:#888; cursor:pointer;"
+                        title="Copy Auction ID">
+                    Copy
+                </button>
+            </td>
             <td style="font-weight:500; color:#111;">{{ row[1] }}</td>
             <td style="color:#555;">{{ row[2] }}</td>
             <td><span class="tag tag-{{ row[4] }}">{{ row[4] }}</span></td>
@@ -380,6 +389,21 @@ BROWSE_PAGE = """
     {% else %}
         <div style="text-align:center; padding:48px; color:#aaa;">No active auctions found.</div>
     {% endif %}
+
+    <script>
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(function() {
+            btn.innerText = 'Copied!';
+            btn.style.color = '#16a34a';
+            btn.style.borderColor = '#86efac';
+            setTimeout(function() {
+                btn.innerText = 'Copy';
+                btn.style.color = '#888';
+                btn.style.borderColor = '#e0e0e0';
+            }, 1500);
+        });
+    }
+    </script>
 """
 
 SEARCH_PAGE = """

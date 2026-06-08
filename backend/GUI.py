@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.secret_key = "ebay_gui_secret"
 db = None
 
-# Base layout
+# ── Base layout ────────────────────────────────────────────────────────────────
 
 BASE = """<!DOCTYPE html>
 <html lang="en">
@@ -89,7 +89,7 @@ BASE = """<!DOCTYPE html>
             {% if session_login %}
             <div style="display:flex; align-items:center; gap:16px;">
                 <span style="font-size:0.85rem; color:#888;">
-                    {% if session_role == "Buyer" %}🛒{% else %}🏪{% endif %}
+                    {% if session_role == "Buyer" %}🛒{% elif session_role == "Seller" %}🏪{% else %}⚙️{% endif %}
                     <strong style="color:#111;">{{ session_login }}</strong>
                 </span>
                 <a href="/dashboard" style="font-size:0.85rem; color:#555; text-decoration:none;">Dashboard</a>
@@ -154,7 +154,7 @@ def form_field(label, input_html, required=False):
     </div>"""
 
 
-# Template
+# ── Templates ──────────────────────────────────────────────────────────────────
 
 MAIN_MENU = card("""
     <div style="margin-bottom:32px;">
@@ -163,14 +163,13 @@ MAIN_MENU = card("""
     </div>
     <div style="display:flex; flex-direction:column; gap:10px;">
         <a href="/login" style="text-decoration:none;"><button class="btn-primary">Login</button></a>
-        <a href="/register_buyer" style="text-decoration:none;"><button class="btn-secondary">Register as Buyer</button></a>
-        <a href="/register_seller" style="text-decoration:none;"><button class="btn-secondary">Register as Seller</button></a>
+        <a href="/register" style="text-decoration:none;"><button class="btn-secondary">Register</button></a>
     </div>
 """)
 
 LOGIN_PAGE = card("""
     <h1 style="font-size:1.5rem; font-weight:600; color:#111; margin:0 0 24px;">Login</h1>
-    {% if error %}""" + "{{ error_html|safe }}" + """{% endif %}
+    {% if error_html %}{{ error_html|safe }}{% endif %}
     <form method="POST">
         <div style="margin-bottom:16px;">
             <label style="display:block; font-size:0.8rem; font-weight:500; color:#555; margin-bottom:6px;">Username <span style="color:#dc2626;">*</span></label>
@@ -183,15 +182,15 @@ LOGIN_PAGE = card("""
         <button type="submit" class="btn-primary">Login</button>
     </form>
     <p style="text-align:center; margin-top:16px; font-size:0.85rem; color:#888;">
-        No account? <a href="/register_buyer" style="color:#111; font-weight:500;">Register</a>
+        No account? <a href="/register" style="color:#111; font-weight:500;">Register</a>
     </p>
 """)
 
 REGISTER_PAGE = card("""
-    <h1 style="font-size:1.5rem; font-weight:600; color:#111; margin:0 0 4px;">Register</h1>
-    <p style="color:#888; font-size:0.85rem; margin:0 0 24px;">Creating account as <strong style="color:#111;">{{ role }}</strong></p>
-    {% if error %}{{ error_html|safe }}{% endif %}
-    {% if success %}{{ success_html|safe }}{% endif %}
+    <h1 style="font-size:1.5rem; font-weight:600; color:#111; margin:0 0 4px;">Create Account</h1>
+    <p style="color:#888; font-size:0.85rem; margin:0 0 24px;">New accounts start as Buyer. Seller access can be granted by an admin.</p>
+    {% if error_html %}{{ error_html|safe }}{% endif %}
+    {% if success_html %}{{ success_html|safe }}{% endif %}
     <form method="POST">
         <div style="margin-bottom:16px;">
             <label style="display:block; font-size:0.8rem; font-weight:500; color:#555; margin-bottom:6px;">Username <span style="color:#dc2626;">*</span></label>
@@ -305,6 +304,22 @@ SELLER_MENU = """
                 <div style="color:#888; font-size:0.8rem; margin-top:2px;">List a new item</div>
             </div>
         </a>
+        <a href="/place_bid" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">💰</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Place Bid</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Bid on an auction</div>
+            </div>
+        </a>
+        <a href="/my_bids" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">📋</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">My Bids</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View bid history</div>
+            </div>
+        </a>
         <a href="/my_items" style="text-decoration:none;">
             <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
                  onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
@@ -321,6 +336,22 @@ SELLER_MENU = """
                 <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Track your listings</div>
             </div>
         </a>
+        <a href="/won_auctions" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">🏆</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Won Auctions</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Items you've won</div>
+            </div>
+        </a>
+        <a href="/make_payment" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">💳</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Make Payment</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Pay for won items</div>
+            </div>
+        </a>
         <a href="/end_auction" style="text-decoration:none;">
             <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
                  onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
@@ -335,6 +366,47 @@ SELLER_MENU = """
                 <div style="font-size:1.4rem; margin-bottom:8px;">🚚</div>
                 <div style="font-weight:500; color:#111; font-size:0.9rem;">Create Shipment</div>
                 <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Ship paid orders</div>
+            </div>
+        </a>
+        <a href="/profile" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">👤</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Profile</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View & edit info</div>
+            </div>
+        </a>
+    </div>
+"""
+
+ADMIN_MENU = """
+    <div style="margin-bottom:32px;">
+        <p style="color:#888; font-size:0.85rem; margin:0 0 4px;">Admin account</p>
+        <h1 style="font-size:1.8rem; font-weight:600; color:#111; margin:0;">Hello, {{ login }} ⚙️</h1>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <a href="/admin/users" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">👥</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Manage Users</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View and promote accounts</div>
+            </div>
+        </a>
+        <a href="/admin/auctions" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">🏷️</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Monitor Auctions</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View all listings</div>
+            </div>
+        </a>
+        <a href="/browse" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">🔍</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Browse Auctions</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View active listings</div>
             </div>
         </a>
         <a href="/profile" style="text-decoration:none;">
@@ -776,8 +848,79 @@ CREATE_SHIPMENT_PAGE = """
     {% endif %}
 """
 
+ADMIN_USERS_PAGE = """
+    {{ header|safe }}
+    {% if error_html %}{{ error_html|safe }}{% endif %}
+    {% if success_html %}{{ success_html|safe }}{% endif %}
+    """ + TABLE_WRAPPER_START + """
+    <tr>
+        <th>Login</th><th>Phone</th><th>Role</th><th>Address</th><th>Favorite Category</th><th>Action</th>
+    </tr>
+    {% for row in users %}
+    <tr>
+        <td style="font-weight:500; color:#111;">{{ row[0] }}</td>
+        <td style="color:#555;">{{ row[1] or '—' }}</td>
+        <td>
+            {% if row[2] == 'Admin' %}
+                <span class="tag" style="background:#fce7f3; color:#9d174d;">Admin</span>
+            {% elif row[2] == 'Seller' %}
+                <span class="tag" style="background:#ede9fe; color:#5b21b6;">Seller</span>
+            {% else %}
+                <span class="tag tag-available">Buyer</span>
+            {% endif %}
+        </td>
+        <td style="color:#555;">{{ row[3] or '—' }}</td>
+        <td style="color:#555;">{{ row[4] or '—' }}</td>
+        <td>
+            {% if row[2] != 'Admin' %}
+            <form method="POST" style="display:flex; gap:6px; align-items:center;">
+                <input type="hidden" name="target_login" value="{{ row[0] }}">
+                <select name="new_role" style="font-size:0.82rem; padding:5px 8px; width:auto;">
+                    <option value="Buyer"  {% if row[2] == 'Buyer'  %}selected{% endif %}>Buyer</option>
+                    <option value="Seller" {% if row[2] == 'Seller' %}selected{% endif %}>Seller</option>
+                    <option value="Admin"  {% if row[2] == 'Admin'  %}selected{% endif %}>Admin</option>
+                </select>
+                <button type="submit" class="btn-action">Update</button>
+            </form>
+            {% else %}
+                <span style="color:#aaa; font-size:0.82rem;">—</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    """ + TABLE_WRAPPER_END + """
+"""
 
-# Route
+ADMIN_AUCTIONS_PAGE = """
+    {{ header|safe }}
+    {% if auctions %}
+        """ + TABLE_WRAPPER_START + """
+        <tr>
+            <th>Auction ID</th><th>Item</th><th>Category</th>
+            <th>Seller</th><th>Highest Bid</th><th>Status</th><th>Winner</th>
+        </tr>
+        {% for row in auctions %}
+        <tr>
+            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[0]|truncate(16, true, '…') }}</td>
+            <td style="font-weight:500; color:#111;">{{ row[1] }}</td>
+            <td style="color:#555;">{{ row[2] }}</td>
+            <td style="color:#555;">{{ row[3] }}</td>
+            <td style="font-weight:500;">
+                {% if row[4] %} ${{ "%.2f"|format(row[4]) }}
+                {% else %}<span style="color:#aaa;">No bids</span>{% endif %}
+            </td>
+            <td><span class="tag tag-{{ row[5] }}">{{ row[5] }}</span></td>
+            <td style="color:#555;">{{ row[6] or '—' }}</td>
+        </tr>
+        {% endfor %}
+        """ + TABLE_WRAPPER_END + """
+    {% else %}
+        <div style="text-align:center; padding:48px; color:#aaa;">No auctions found.</div>
+    {% endif %}
+"""
+
+
+# ── Routes ─────────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def main_menu():
@@ -801,8 +944,8 @@ def login():
     return render(LOGIN_PAGE, error_html=error_html)
 
 
-@app.route("/register_buyer", methods=["GET", "POST"])
-def register_buyer():
+@app.route("/register", methods=["GET", "POST"])
+def register():
     error_html = None
     success_html = None
     if request.method == "POST":
@@ -814,39 +957,29 @@ def register_buyer():
         if not login_val or not password:
             error_html = alert("Login and password are required.")
         else:
-            db.execute_update('INSERT INTO "User" (login, phoneNum, role, password, address, favoriteCategory) VALUES (%s, %s, \'Buyer\', %s, %s, %s);',
-                              (login_val, phone, password, address, fav_category))
-            success_html = alert(f"Buyer '{login_val}' registered! You can now log in.", "success")
-    return render(REGISTER_PAGE, role="Buyer", error_html=error_html, success_html=success_html)
-
-
-@app.route("/register_seller", methods=["GET", "POST"])
-def register_seller_route():
-    error_html = None
-    success_html = None
-    if request.method == "POST":
-        login_val    = request.form["login"].strip()
-        phone        = request.form["phone"].strip()
-        password     = request.form["password"].strip()
-        address      = request.form["address"].strip()
-        fav_category = request.form["favorite_category"].strip()
-        if not login_val or not password:
-            error_html = alert("Login and password are required.")
-        else:
-            db.execute_update('INSERT INTO "User" (login, phoneNum, role, password, address, favoriteCategory) VALUES (%s, %s, \'Seller\', %s, %s, %s);',
-                              (login_val, phone, password, address, fav_category))
-            success_html = alert(f"Seller '{login_val}' registered! You can now log in.", "success")
-    return render(REGISTER_PAGE, role="Seller", error_html=error_html, success_html=success_html)
+            ok = db.execute_update(
+                'INSERT INTO "User" (login, phoneNum, role, password, address, favoriteCategory) VALUES (%s, %s, \'Buyer\', %s, %s, %s);',
+                (login_val, phone, password, address, fav_category)
+            )
+            if ok:
+                success_html = alert(f"Account '{login_val}' created! You can now log in.", "success")
+            else:
+                error_html = alert("Username already taken or an error occurred.")
+    return render(REGISTER_PAGE, error_html=error_html, success_html=success_html)
 
 
 @app.route("/dashboard")
 def dashboard():
     if "login" not in session:
         return redirect(url_for("main_menu"))
-    if session["role"] == "Buyer":
+    role = session["role"]
+    if role == "Buyer":
         return render(BUYER_MENU, login=session["login"])
-    else:
+    elif role == "Seller":
         return render(SELLER_MENU, login=session["login"])
+    elif role == "Admin":
+        return render(ADMIN_MENU, login=session["login"])
+    return redirect(url_for("main_menu"))
 
 
 @app.route("/profile")
@@ -918,7 +1051,7 @@ def search():
 
 @app.route("/place_bid", methods=["GET", "POST"])
 def place_bid():
-    if "login" not in session or session["role"] != "Buyer":
+    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
         return redirect(url_for("main_menu"))
     error_html = None
     success_html = None
@@ -959,7 +1092,7 @@ def place_bid():
 
 @app.route("/my_bids")
 def my_bids():
-    if "login" not in session or session["role"] != "Buyer":
+    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
         return redirect(url_for("main_menu"))
     bids = db.fetch_all("""
         SELECT Bid.bidId, Bid.auctionID, Item.itemName, Bid.bidAmount,
@@ -974,7 +1107,7 @@ def my_bids():
 
 @app.route("/won_auctions")
 def won_auctions():
-    if "login" not in session or session["role"] != "Buyer":
+    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
         return redirect(url_for("main_menu"))
     auctions = db.fetch_all("""
         SELECT Auction.auctionID, Item.itemName, Auction.currentHighestBid,
@@ -988,7 +1121,7 @@ def won_auctions():
 
 @app.route("/make_payment", methods=["GET", "POST"])
 def make_payment():
-    if "login" not in session or session["role"] != "Buyer":
+    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
         return redirect(url_for("main_menu"))
     error_html = None
     success_html = None
@@ -1172,13 +1305,55 @@ def create_shipment():
     return render(CREATE_SHIPMENT_PAGE, auctions=auctions, error_html=error_html, success_html=success_html, header=h)
 
 
+@app.route("/admin/users", methods=["GET", "POST"])
+def admin_users():
+    if "login" not in session or session["role"] != "Admin":
+        return redirect(url_for("main_menu"))
+    error_html = None
+    success_html = None
+    if request.method == "POST":
+        target_login = request.form["target_login"].strip()
+        new_role     = request.form["new_role"].strip()
+        if new_role not in ("Buyer", "Seller", "Admin"):
+            error_html = alert("Invalid role.")
+        else:
+            ok = db.execute_update(
+                'UPDATE "User" SET role = %s WHERE login = %s;',
+                (new_role, target_login)
+            )
+            if ok:
+                success_html = alert(f"'{target_login}' updated to {new_role}.", "success")
+            else:
+                error_html = alert("Update failed.")
+    users = db.fetch_all(
+        'SELECT login, phoneNum, role, address, favoriteCategory FROM "User" ORDER BY role, login;'
+    )
+    h = page_header("Manage Users", "/dashboard", "Dashboard")
+    return render(ADMIN_USERS_PAGE, users=users, error_html=error_html, success_html=success_html, header=h)
+
+
+@app.route("/admin/auctions")
+def admin_auctions():
+    if "login" not in session or session["role"] != "Admin":
+        return redirect(url_for("main_menu"))
+    auctions = db.fetch_all("""
+        SELECT Auction.auctionID, Item.itemName, Item.category,
+               Auction.sellerLogin, Auction.currentHighestBid,
+               Auction.auctionStatus, Auction.buyerLogin
+        FROM Auction JOIN Item ON Auction.itemID = Item.itemID
+        ORDER BY Auction.auctionStatus, Auction.auctionID;
+    """)
+    h = page_header("Monitor Auctions", "/dashboard", "Dashboard")
+    return render(ADMIN_AUCTIONS_PAGE, auctions=auctions, header=h)
+
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("main_menu"))
 
 
-# Main
+# ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
     global db

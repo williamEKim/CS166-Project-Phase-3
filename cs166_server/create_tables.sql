@@ -27,7 +27,7 @@ CREATE TABLE "User" (
     login            TEXT NOT NULL PRIMARY KEY,    
     phoneNum         CHAR(20),
     role             TEXT NOT NULL CHECK (      
-        role IN ('Seller', 'Buyer')
+        role IN ('Seller', 'Buyer', 'Admin')
     ),                                  -- enforce user role to be either Seller or Buyer
     password         TEXT NOT NULL,
     address          TEXT,

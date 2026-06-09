@@ -263,6 +263,14 @@ BUYER_MENU = """
                 <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Items you've won</div>
             </div>
         </a>
+        <a href="/my_shipments" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">📬</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">My Shipments</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Track your orders</div>
+            </div>
+        </a>
         <a href="/make_payment" style="text-decoration:none;">
             <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
                  onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
@@ -655,6 +663,34 @@ MAKE_PAYMENT_PAGE = """
         """ + TABLE_WRAPPER_END + """
     {% else %}
         <div style="text-align:center; padding:48px; color:#aaa;">No pending payments.</div>
+    {% endif %}
+"""
+
+VIEW_SHIPMENT_PAGE = """
+    {{ header|safe }}
+    {% if shipments %}
+        """ + TABLE_WRAPPER_START + """
+        <tr><th>Auction ID</th><th>Item</th><th>Address</th><th>Status</th><th>Tracking #</th></tr>
+        {% for row in shipments %}
+        <tr>
+            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[0]|truncate(16, true, '…') }}</td>
+            <td style="font-weight:500; color:#111;">{{ row[1] }}</td>
+            <td style="color:#555;">{{ row[2] }}</td>
+            <td>
+                {% if row[3] == 'delivered' %}
+                    <span class="tag tag-active">delivered</span>
+                {% elif row[3] == 'shipped' %}
+                    <span class="tag" style="background:#ede9fe; color:#5b21b6;">shipped</span>
+                {% else %}
+                    <span class="tag tag-closed">pending</span>
+                {% endif %}
+            </td>
+            <td style="color:#555;">{{ row[4] or '—' }}</td>
+        </tr>
+        {% endfor %}
+        """ + TABLE_WRAPPER_END + """
+    {% else %}
+        <div style="text-align:center; padding:48px; color:#aaa;">No shipments found.</div>
     {% endif %}
 """
 
@@ -1271,6 +1307,27 @@ def make_payment():
     h = page_header("Make Payment")
     return render(MAKE_PAYMENT_PAGE, auctions=auctions, error_html=error_html, success_html=success_html, header=h)
 
+@app.route("/my_shipments")
+def my_shipments():
+    if "login" not in session or session["role"] != "Buyer":
+        return redirect(url_for("main_menu"))
+
+    shipments = db.fetch_all("""
+        SELECT
+            Auction.auctionID,
+            Item.itemName,
+            Shipment.address,
+            Shipment.shipmentStatus,
+            Shipment.trackingNumber
+        FROM Shipment
+        JOIN Auction ON Shipment.auctionID = Auction.auctionID
+        JOIN Item ON Auction.itemID = Item.itemID
+        WHERE Auction.buyerLogin = %s
+        ORDER BY Shipment.shipmentStatus, Auction.auctionID;
+    """, (session["login"],))
+
+    h = page_header("My Shipments")
+    return render(VIEW_SHIPMENT_PAGE, shipments=shipments, header=h)
 
 @app.route("/create_item", methods=["GET", "POST"])
 def create_item():

@@ -22,13 +22,13 @@ PostgreSQL setup scripts for the CS166 eBay project. Works on Mac, Linux, and Wi
 ### Mac / Linux
 ```bash
 # Initiate DB, install dependencies, and launch the Flask GUI
-source Ebay_DB.sh 
+source eBay_DB.sh 
 ```
 
 ### Windows
 ```bat
 :: Initiate DB, install dependencies, and launch the Flask GUI
-Ebay_DB.bat
+eBay_DB.bat
 ```
 
 ### Accessing the GUI

@@ -2,6 +2,7 @@
 PostgreSQL setup scripts for the CS166 eBay project. Works on Mac, Linux, and Windows.
 
 ## Requirements
+- Access to the (UCR) School Server using local port forwarding: `ssh -L 5000:localhost:5000 <user>@cs166.cs.ucr.edu` and clone this repository
 - PostgreSQL 16+
 - Python 3.6+
 - Mac: [Homebrew](https://brew.sh)

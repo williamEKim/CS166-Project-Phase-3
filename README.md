@@ -19,16 +19,15 @@ PostgreSQL setup scripts for the CS166 eBay project. Works on Mac, Linux, and Wi
 | `cs166_server/initial_data.sql` | Seed data |
 
 ## Usage
+Initiate DB, install dependencies, and launch the Flask GUI
 
 ### Mac / Linux
 ```bash
-# Initiate DB, install dependencies, and launch the Flask GUI
 source eBay_DB.sh 
 ```
 
 ### Windows
 ```bat
-:: Initiate DB, install dependencies, and launch the Flask GUI
 eBay_DB.bat
 ```
 
@@ -134,7 +133,7 @@ CS166-Project-Phase-3/
 │   ├── createPostgreDB.sh
 │   ├── startPostgreSQL.sh
 │   ├── stopPostgreDB.sh
-│   ├── psql.sh / psql.bat
+│   └── psql.sh / psql.bat
 ├── database/
 ├── .gitignore
 ├── eBay_DB.sh

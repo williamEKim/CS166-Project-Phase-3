@@ -304,22 +304,6 @@ SELLER_MENU = """
                 <div style="color:#888; font-size:0.8rem; margin-top:2px;">List a new item</div>
             </div>
         </a>
-        <a href="/place_bid" style="text-decoration:none;">
-            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
-                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
-                <div style="font-size:1.4rem; margin-bottom:8px;">💰</div>
-                <div style="font-weight:500; color:#111; font-size:0.9rem;">Place Bid</div>
-                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Bid on an auction</div>
-            </div>
-        </a>
-        <a href="/my_bids" style="text-decoration:none;">
-            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
-                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
-                <div style="font-size:1.4rem; margin-bottom:8px;">📋</div>
-                <div style="font-weight:500; color:#111; font-size:0.9rem;">My Bids</div>
-                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View bid history</div>
-            </div>
-        </a>
         <a href="/my_items" style="text-decoration:none;">
             <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
                  onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
@@ -334,22 +318,6 @@ SELLER_MENU = """
                 <div style="font-size:1.4rem; margin-bottom:8px;">🏷️</div>
                 <div style="font-weight:500; color:#111; font-size:0.9rem;">My Auctions</div>
                 <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Track your listings</div>
-            </div>
-        </a>
-        <a href="/won_auctions" style="text-decoration:none;">
-            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
-                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
-                <div style="font-size:1.4rem; margin-bottom:8px;">🏆</div>
-                <div style="font-weight:500; color:#111; font-size:0.9rem;">Won Auctions</div>
-                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Items you've won</div>
-            </div>
-        </a>
-        <a href="/make_payment" style="text-decoration:none;">
-            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
-                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
-                <div style="font-size:1.4rem; margin-bottom:8px;">💳</div>
-                <div style="font-weight:500; color:#111; font-size:0.9rem;">Make Payment</div>
-                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">Pay for won items</div>
             </div>
         </a>
         <a href="/end_auction" style="text-decoration:none;">
@@ -390,7 +358,15 @@ ADMIN_MENU = """
                  onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
                 <div style="font-size:1.4rem; margin-bottom:8px;">👥</div>
                 <div style="font-weight:500; color:#111; font-size:0.9rem;">Manage Users</div>
-                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View and promote accounts</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View, promote, delete accounts</div>
+            </div>
+        </a>
+        <a href="/admin/items" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">📦</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Manage Items</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View and delete items</div>
             </div>
         </a>
         <a href="/admin/auctions" style="text-decoration:none;">
@@ -399,6 +375,22 @@ ADMIN_MENU = """
                 <div style="font-size:1.4rem; margin-bottom:8px;">🏷️</div>
                 <div style="font-weight:500; color:#111; font-size:0.9rem;">Monitor Auctions</div>
                 <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View all listings</div>
+            </div>
+        </a>
+        <a href="/admin/payments" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">💳</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Manage Payments</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View and cancel payments</div>
+            </div>
+        </a>
+        <a href="/admin/shipments" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px; cursor:pointer; transition:box-shadow 0.2s;"
+                 onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-size:1.4rem; margin-bottom:8px;">🚚</div>
+                <div style="font-weight:500; color:#111; font-size:0.9rem;">Manage Shipments</div>
+                <div style="color:#aaa; font-size:0.8rem; margin-top:2px;">View and cancel shipments</div>
             </div>
         </a>
         <a href="/browse" style="text-decoration:none;">
@@ -854,7 +846,7 @@ ADMIN_USERS_PAGE = """
     {% if success_html %}{{ success_html|safe }}{% endif %}
     """ + TABLE_WRAPPER_START + """
     <tr>
-        <th>Login</th><th>Phone</th><th>Role</th><th>Address</th><th>Favorite Category</th><th>Action</th>
+        <th>Login</th><th>Phone</th><th>Role</th><th>Address</th><th>Favorite Category</th><th>Role Action</th><th>Delete</th>
     </tr>
     {% for row in users %}
     <tr>
@@ -873,7 +865,8 @@ ADMIN_USERS_PAGE = """
         <td style="color:#555;">{{ row[4] or '—' }}</td>
         <td>
             {% if row[2] != 'Admin' %}
-            <form method="POST" style="display:flex; gap:6px; align-items:center;">
+            <form method="POST" action="/admin/users" style="display:flex; gap:6px; align-items:center;">
+                <input type="hidden" name="action" value="update_role">
                 <input type="hidden" name="target_login" value="{{ row[0] }}">
                 <select name="new_role" style="font-size:0.82rem; padding:5px 8px; width:auto;">
                     <option value="Buyer"  {% if row[2] == 'Buyer'  %}selected{% endif %}>Buyer</option>
@@ -881,6 +874,17 @@ ADMIN_USERS_PAGE = """
                     <option value="Admin"  {% if row[2] == 'Admin'  %}selected{% endif %}>Admin</option>
                 </select>
                 <button type="submit" class="btn-action">Update</button>
+            </form>
+            {% else %}
+                <span style="color:#aaa; font-size:0.82rem;">—</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if row[2] != 'Admin' %}
+            <form method="POST" action="/admin/users" onsubmit="return confirm('Delete user {{ row[0] }}? This cannot be undone.');">
+                <input type="hidden" name="action" value="delete_user">
+                <input type="hidden" name="target_login" value="{{ row[0] }}">
+                <button type="submit" class="btn-danger">Delete</button>
             </form>
             {% else %}
                 <span style="color:#aaa; font-size:0.82rem;">—</span>
@@ -916,6 +920,115 @@ ADMIN_AUCTIONS_PAGE = """
         """ + TABLE_WRAPPER_END + """
     {% else %}
         <div style="text-align:center; padding:48px; color:#aaa;">No auctions found.</div>
+    {% endif %}
+"""
+
+ADMIN_ITEMS_PAGE = """
+    {{ header|safe }}
+    {% if error_html %}{{ error_html|safe }}{% endif %}
+    {% if success_html %}{{ success_html|safe }}{% endif %}
+    {% if items %}
+        """ + TABLE_WRAPPER_START + """
+        <tr><th>Item ID</th><th>Name</th><th>Category</th><th>Condition</th><th>Price</th><th>Seller</th><th>Delete</th></tr>
+        {% for row in items %}
+        <tr>
+            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[0]|truncate(16, true, '…') }}</td>
+            <td style="font-weight:500; color:#111;">{{ row[1] }}</td>
+            <td style="color:#555;">{{ row[2] }}</td>
+            <td><span class="tag tag-{{ row[3] }}">{{ row[3] }}</span></td>
+            <td style="color:#555;">${{ "%.2f"|format(row[4]) }}</td>
+            <td style="color:#555;">{{ row[5] }}</td>
+            <td>
+                <form method="POST" onsubmit="return confirm('Delete item {{ row[1] }}? This cannot be undone.');">
+                    <input type="hidden" name="item_id" value="{{ row[0] }}">
+                    <button type="submit" class="btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        """ + TABLE_WRAPPER_END + """
+    {% else %}
+        <div style="text-align:center; padding:48px; color:#aaa;">No items found.</div>
+    {% endif %}
+"""
+
+ADMIN_PAYMENTS_PAGE = """
+    {{ header|safe }}
+    {% if error_html %}{{ error_html|safe }}{% endif %}
+    {% if success_html %}{{ success_html|safe }}{% endif %}
+    {% if payments %}
+        """ + TABLE_WRAPPER_START + """
+        <tr><th>Payment ID</th><th>Auction ID</th><th>Buyer</th><th>Amount</th><th>Status</th><th>Cancel</th></tr>
+        {% for row in payments %}
+        <tr>
+            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[0]|truncate(16, true, '…') }}</td>
+            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[1]|truncate(16, true, '…') }}</td>
+            <td style="color:#555;">{{ row[2] }}</td>
+            <td style="font-weight:500; color:#111;">${{ "%.2f"|format(row[3]) }}</td>
+            <td>
+                {% if row[4] == 'completed' %}
+                    <span class="tag tag-active">completed</span>
+                {% elif row[4] == 'failed' %}
+                    <span class="tag tag-sold">failed</span>
+                {% else %}
+                    <span class="tag tag-closed">{{ row[4] }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if row[4] != 'failed' %}
+                <form method="POST" onsubmit="return confirm('Cancel this payment? Status will be set to failed.');">
+                    <input type="hidden" name="payment_id" value="{{ row[0] }}">
+                    <button type="submit" class="btn-danger">Cancel</button>
+                </form>
+                {% else %}
+                    <span style="color:#aaa; font-size:0.82rem;">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        """ + TABLE_WRAPPER_END + """
+    {% else %}
+        <div style="text-align:center; padding:48px; color:#aaa;">No payments found.</div>
+    {% endif %}
+"""
+
+ADMIN_SHIPMENTS_PAGE = """
+    {{ header|safe }}
+    {% if error_html %}{{ error_html|safe }}{% endif %}
+    {% if success_html %}{{ success_html|safe }}{% endif %}
+    {% if shipments %}
+        """ + TABLE_WRAPPER_START + """
+        <tr><th>Shipment ID</th><th>Auction ID</th><th>Address</th><th>Status</th><th>Tracking #</th><th>Cancel</th></tr>
+        {% for row in shipments %}
+        <tr>
+            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[0]|truncate(16, true, '…') }}</td>
+            <td class="mono" style="font-size:0.78rem; color:#888;">{{ row[1]|truncate(16, true, '…') }}</td>
+            <td style="color:#555;">{{ row[2] }}</td>
+            <td>
+                {% if row[3] == 'delivered' %}
+                    <span class="tag tag-active">delivered</span>
+                {% elif row[3] == 'shipped' %}
+                    <span class="tag" style="background:#ede9fe; color:#5b21b6;">shipped</span>
+                {% else %}
+                    <span class="tag tag-closed">{{ row[3] }}</span>
+                {% endif %}
+            </td>
+            <td style="color:#555;">{{ row[4] or '—' }}</td>
+            <td>
+                {% if row[3] != 'delivered' %}
+                <form method="POST" onsubmit="return confirm('Cancel this shipment? Status will be set to pending.');">
+                    <input type="hidden" name="shipment_id" value="{{ row[0] }}">
+                    <button type="submit" class="btn-danger">Cancel</button>
+                </form>
+                {% else %}
+                    <span style="color:#aaa; font-size:0.82rem;">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        """ + TABLE_WRAPPER_END + """
+    {% else %}
+        <div style="text-align:center; padding:48px; color:#aaa;">No shipments found.</div>
     {% endif %}
 """
 
@@ -1051,7 +1164,7 @@ def search():
 
 @app.route("/place_bid", methods=["GET", "POST"])
 def place_bid():
-    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
+    if "login" not in session or session["role"] != "Buyer":
         return redirect(url_for("main_menu"))
     error_html = None
     success_html = None
@@ -1092,7 +1205,7 @@ def place_bid():
 
 @app.route("/my_bids")
 def my_bids():
-    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
+    if "login" not in session or session["role"] != "Buyer":
         return redirect(url_for("main_menu"))
     bids = db.fetch_all("""
         SELECT Bid.bidId, Bid.auctionID, Item.itemName, Bid.bidAmount,
@@ -1107,7 +1220,7 @@ def my_bids():
 
 @app.route("/won_auctions")
 def won_auctions():
-    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
+    if "login" not in session or session["role"] != "Buyer":
         return redirect(url_for("main_menu"))
     auctions = db.fetch_all("""
         SELECT Auction.auctionID, Item.itemName, Auction.currentHighestBid,
@@ -1121,7 +1234,7 @@ def won_auctions():
 
 @app.route("/make_payment", methods=["GET", "POST"])
 def make_payment():
-    if "login" not in session or session["role"] not in ("Buyer", "Seller"):
+    if "login" not in session or session["role"] != "Buyer":
         return redirect(url_for("main_menu"))
     error_html = None
     success_html = None
@@ -1312,22 +1425,25 @@ def admin_users():
     error_html = None
     success_html = None
     if request.method == "POST":
-        target_login = request.form["target_login"].strip()
-        new_role     = request.form["new_role"].strip()
-        if new_role not in ("Buyer", "Seller", "Admin"):
-            error_html = alert("Invalid role.")
-        else:
-            ok = db.execute_update(
-                'UPDATE "User" SET role = %s WHERE login = %s;',
-                (new_role, target_login)
-            )
-            if ok:
-                success_html = alert(f"'{target_login}' updated to {new_role}.", "success")
+        action       = request.form.get("action")
+        target_login = request.form.get("target_login", "").strip()
+        if action == "update_role":
+            new_role = request.form.get("new_role", "").strip()
+            if new_role not in ("Buyer", "Seller", "Admin"):
+                error_html = alert("Invalid role.")
             else:
-                error_html = alert("Update failed.")
-    users = db.fetch_all(
-        'SELECT login, phoneNum, role, address, favoriteCategory FROM "User" ORDER BY role, login;'
-    )
+                ok = db.execute_update('UPDATE "User" SET role = %s WHERE login = %s;', (new_role, target_login))
+                if ok:
+                    success_html = alert(f"'{target_login}' updated to {new_role}.", "success")
+                else:
+                    error_html = alert("Update failed.")
+        elif action == "delete_user":
+            ok = db.execute_update('DELETE FROM "User" WHERE login = %s;', (target_login,))
+            if ok:
+                success_html = alert(f"User '{target_login}' deleted.", "success")
+            else:
+                error_html = alert("Delete failed. User may have related records.")
+    users = db.fetch_all('SELECT login, phoneNum, role, address, favoriteCategory FROM "User" ORDER BY role, login;')
     h = page_header("Manage Users", "/dashboard", "Dashboard")
     return render(ADMIN_USERS_PAGE, users=users, error_html=error_html, success_html=success_html, header=h)
 
@@ -1345,6 +1461,69 @@ def admin_auctions():
     """)
     h = page_header("Monitor Auctions", "/dashboard", "Dashboard")
     return render(ADMIN_AUCTIONS_PAGE, auctions=auctions, header=h)
+
+
+@app.route("/admin/items", methods=["GET", "POST"])
+def admin_items():
+    if "login" not in session or session["role"] != "Admin":
+        return redirect(url_for("main_menu"))
+    error_html = None
+    success_html = None
+    if request.method == "POST":
+        item_id = request.form.get("item_id", "").strip()
+        ok = db.execute_update("DELETE FROM Item WHERE itemID = %s;", (item_id,))
+        if ok:
+            success_html = alert(f"Item '{item_id}' deleted.", "success")
+        else:
+            error_html = alert("Delete failed. Item may have active auctions.")
+    items = db.fetch_all("""
+        SELECT itemID, itemName, category, condition, startingPrice, sellerLogin
+        FROM Item ORDER BY sellerLogin, itemName;
+    """)
+    h = page_header("Manage Items", "/dashboard", "Dashboard")
+    return render(ADMIN_ITEMS_PAGE, items=items, error_html=error_html, success_html=success_html, header=h)
+
+
+@app.route("/admin/payments", methods=["GET", "POST"])
+def admin_payments():
+    if "login" not in session or session["role"] != "Admin":
+        return redirect(url_for("main_menu"))
+    error_html = None
+    success_html = None
+    if request.method == "POST":
+        payment_id = request.form.get("payment_id", "").strip()
+        ok = db.execute_update("UPDATE Payment SET paymentStatus = 'failed' WHERE paymentID = %s;", (payment_id,))
+        if ok:
+            success_html = alert(f"Payment '{payment_id}' cancelled.", "success")
+        else:
+            error_html = alert("Cancel failed.")
+    payments = db.fetch_all("""
+        SELECT paymentID, auctionID, buyerLogin, amount, paymentStatus
+        FROM Payment ORDER BY paymentStatus, paymentID;
+    """)
+    h = page_header("Manage Payments", "/dashboard", "Dashboard")
+    return render(ADMIN_PAYMENTS_PAGE, payments=payments, error_html=error_html, success_html=success_html, header=h)
+
+
+@app.route("/admin/shipments", methods=["GET", "POST"])
+def admin_shipments():
+    if "login" not in session or session["role"] != "Admin":
+        return redirect(url_for("main_menu"))
+    error_html = None
+    success_html = None
+    if request.method == "POST":
+        shipment_id = request.form.get("shipment_id", "").strip()
+        ok = db.execute_update("UPDATE Shipment SET shipmentStatus = 'pending' WHERE ShipmentID = %s;", (shipment_id,))
+        if ok:
+            success_html = alert(f"Shipment '{shipment_id}' cancelled (reset to pending).", "success")
+        else:
+            error_html = alert("Cancel failed.")
+    shipments = db.fetch_all("""
+        SELECT ShipmentID, auctionID, address, shipmentStatus, trackingNumber
+        FROM Shipment ORDER BY shipmentStatus, ShipmentID;
+    """)
+    h = page_header("Manage Shipments", "/dashboard", "Dashboard")
+    return render(ADMIN_SHIPMENTS_PAGE, shipments=shipments, error_html=error_html, success_html=success_html, header=h)
 
 
 @app.route("/logout")
